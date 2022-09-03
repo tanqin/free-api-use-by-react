@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="#" type="image/x-icon" />
+    <title>free-api-use-by-react</title>
+    <style>
+      html,
+      body,
+      #app {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #app {
+        display: flex;
+        justify-content: space-evenly;
+        padding-top: 10px;
+        background-image: url('http://api.botwl.cn/api/bing?type=image');
+      }
+
+      .container {
+        width: 300px;
+        height: 400px;
+        padding: 10px;
+        border-radius: 20px;
+        text-align: center;
+        border: 1px solid #dfd4d44d;
+        box-shadow: 2px 3px 1px 0px #dfd4d44d;
+        background-color: rgba(255, 255, 255, 0.85);
+      }
+
+      .title {
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .pray-sticks .content {
+        display: flex;
+        align-items: start;
+        justify-content: space-evenly;
+        height: calc(100% - 110px);
+        cursor: pointer;
+      }
+
+      .pray-sticks p {
+        writing-mode: vertical-lr;
+        cursor: auto;
+      }
+
+      .netease-music .preview {
+        width: 40%;
+        height: 40%;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      @keyframes rotation {
+        from {
+          -webkit-transform: rotate(0deg);
+        }
+
+        to {
+          -webkit-transform: rotate(360deg);
+        }
+      }
+
+      @-webkit-keyframes rotation {
+        from {
+          -webkit-transform: rotate(0deg);
+        }
+
+        to {
+          -webkit-transform: rotate(360deg);
+        }
+      }
+
+      .netease-music .preview-rotation {
+        transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        animation: rotation 10s linear infinite;
+        -moz-animation: rotation 10s linear infinite;
+        -webkit-animation: rotation 10s linear infinite;
+        -o-animation: rotation 10s linear infinite;
+      }
+
+      audio:focus,
+      input,
+      button {
+        outline: none;
+        border: none;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script> -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="text/babel">
+      const ele = React.createElement
+      const useState = React.useState
+      const useEffect = React.useEffect
+      /**
+       * @name 看图猜成语
+       * @description 1. 点击图片切换成语; 2. 鼠标移入答案双箭头中间位置显示成语
+       * @tip react 原始的写法 + axios
+       */
+      class GuessIdiom extends React.Component {
+        constructor(props) {
+          super(props)
+          this.state = {
+            imgUrl: '',
+            idiom: '',
+          }
+        }
+        getIdiom = () => {
+          // https://bird.ioliu.cn/v2/ 可以作为 HTTP 接口代理
+          axios.get('https://bird.ioliu.cn/v2/?url=http://api.botwl.cn/api/ktccy').then(({ data }) => {
+            this.setState({ imgUrl: data.img })
+            this.setState({ idiom: data.msg })
+          })
+        }
+
+        componentDidMount() {
+          this.getIdiom()
+        }
+
+        render() {
+          return ele('section', { className: 'container' }, [
+            ele('h2', { key: 'title' }, '看图猜成语'),
+            ele('img', {
+              key: 'img',
+              src: this.state.imgUrl,
+              alt: 'img',
+              title: '点击换图',
+              style: { cursor: 'pointer', width: '70%', objectFit: 'contain' },
+              onClick: this.getIdiom,
+            }),
+            ele('h4', { key: 'idiom-text', className: 'idiom-text', style: { fontSize: '24px' } }, [
+              `答案: → `,
+              ele(
+                'span',
+                {
+                  key: 'idiom',
+                  style: { opacity: 0, cursor: 'pointer' },
+                  onMouseEnter: (e) => (e.target.style.opacity = 1),
+                  onMouseLeave: (e) => (e.target.style.opacity = 0),
+                },
+                `${this.state.idiom}`
+              ),
+              ` ←`,
+            ]),
+          ])
+        }
+      }
+
+      /**
+       * @name 求签
+       * @description 1. 双击卡片标题重新求签
+       * @tip class + jsx + axios
+       */
+      class PraySticks extends React.Component {
+        state = {
+          // 签诗
+          sticksPoem: '',
+          // 解签
+          sticksResolve: '',
+        }
+        handlePraySticks = async () => {
+          let { data } = await axios.get('https://bird.ioliu.cn/v2/?url=http://api.botwl.cn/api/qiuqian')
+          // 签诗
+          const sticksPoem = data.split('[\\n]')[0]
+          // 解签
+          const sticksResolve = data.split('[\\n]')[1]
+          this.setState({ sticksPoem, sticksResolve })
+        }
+
+        componentDidMount() {
+          this.handlePraySticks()
+        }
+
+        render() {
+          const { sticksPoem, sticksResolve } = this.state
+          return (
+            <React.Fragment>
+              <section className='container pray-sticks'>
+                <h2 className='title' title='双击重抽' onDoubleClick={this.handlePraySticks}>
+                  求签
+                </h2>
+                <div className='content'>
+                  <p dangerouslySetInnerHTML={{ __html: sticksPoem }} />
+                  <p dangerouslySetInnerHTML={{ __html: sticksResolve }} />
+                </div>
+              </section>
+            </React.Fragment>
+          )
+        }
+      }
+
+      /**
+       * @name 网易云音乐
+       * @description 1. 搜索音乐; 2. 封面点击播放/暂停音乐
+       * @tip 函数组件 + hooks + jsx + fetch
+       */
+      const NeteaseMusic = () => {
+        const [songKeyword, setSongKeyword] = useState('Numb - Linkin Park')
+        const [songInfo, setSongInfo] = useState({})
+        const [playing, setPlaying] = useState(true)
+        const audioPlayerDOM = document.querySelector('#audio-player')
+
+        // 搜索歌曲
+        const searchSong = () => {
+          fetch(`https://bird.ioliu.cn/v2/?url=http://api.botwl.cn/api/wyy?msg=${songKeyword}&type=json&n=1`).then(
+            async (res) => {
+              const originData = await res.text()
+              const data = JSON.parse(originData.replace('json:', '')).meta.music
+              setSongInfo(data)
+            }
+          )
+        }
+
+        // 提交
+        const handleSubmit = (e) => {
+          e.preventDefault()
+          searchSong()
+        }
+
+        // 播放/暂停
+        const handlePlayAndPause = () => {
+          const playingStatus = !playing
+          setPlaying(playingStatus)
+          playingStatus ? audioPlayerDOM.play() : audioPlayerDOM.pause()
+        }
+
+        useEffect(() => {
+          searchSong()
+        }, [])
+
+        return (
+          <section className='container netease-music'>
+            <h2 className='title'>网易云音乐</h2>
+            <form onSubmit={handleSubmit}>
+              <input
+                type='text'
+                placeholder='请输入歌名'
+                value={songKeyword}
+                onChange={(e) => setSongKeyword(e.target.value)}
+                style={{ width: '70%', height: 26, borderRadius: 4 }}
+              />
+              &ensp; <button style={{ height: 28 }}>搜索</button>
+              <div className='content'>
+                <p>
+                  <img
+                    onClick={handlePlayAndPause}
+                    src={songInfo.preview}
+                    className={`preview ${playing ? 'preview-rotation' : ''}`}
+                  />
+                </p>
+                <p>歌名: {songInfo.title}</p>
+                <p>歌手: {songInfo.desc}</p>
+                <p>
+                  <audio
+                    id='audio-player'
+                    autoPlay
+                    controls
+                    onPlay={() => setPlaying(true)}
+                    onPause={() => setPlaying(false)}
+                    onEnded={() => setPlaying(false)}
+                    src={songInfo.musicUrl}
+                    style={{ width: '90%', height: 30 }}
+                  >
+                    您的浏览器不支持 audio 元素。
+                  </audio>
+                </p>
+              </div>
+            </form>
+          </section>
+        )
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('app'))
+      root.render([
+        ele(GuessIdiom, { key: 'GuessIdiom' }),
+        ele(PraySticks, { key: 'PraySticks' }),
+        ele(NeteaseMusic, { key: 'NeteaseMusic' }),
+      ])
+    </script>
+  </body>
+</html>
