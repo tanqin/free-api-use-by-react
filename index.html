@@ -105,6 +105,8 @@
   <body>
     <div id="app"></div>
     <script type="text/babel">
+      // https://bird.ioliu.cn/v2/ 可以作为 HTTP 代理接口
+      const proxyInterface = 'https://bird.ioliu.cn/v2/'
       const ele = React.createElement
       const useState = React.useState
       const useEffect = React.useEffect
@@ -122,8 +124,7 @@
           }
         }
         getIdiom = () => {
-          // https://bird.ioliu.cn/v2/ 可以作为 HTTP 接口代理
-          axios.get('https://bird.ioliu.cn/v2/?url=http://api.botwl.cn/api/ktccy').then(({ data }) => {
+          axios.get(`${proxyInterface}?url=http://api.botwl.cn/api/ktccy`).then(({ data }) => {
             this.setState({ imgUrl: data.img })
             this.setState({ idiom: data.msg })
           })
@@ -175,7 +176,7 @@
           sticksResolve: '',
         }
         handlePraySticks = async () => {
-          let { data } = await axios.get('https://bird.ioliu.cn/v2/?url=http://api.botwl.cn/api/qiuqian')
+          let { data } = await axios.get(`${proxyInterface}?url=http://api.botwl.cn/api/qiuqian`)
           // 签诗
           const sticksPoem = data.split('[\\n]')[0]
           // 解签
@@ -218,7 +219,7 @@
 
         // 搜索歌曲
         const searchSong = () => {
-          fetch(`https://bird.ioliu.cn/v2/?url=http://api.botwl.cn/api/wyy?msg=${songKeyword}&type=json&n=1`).then(
+          fetch(`${proxyInterface}?url=http://api.botwl.cn/api/wyy?msg=${songKeyword}&type=json&n=1`).then(
             async (res) => {
               const originData = await res.text()
               const data = JSON.parse(originData.replace('json:', '')).meta.music
