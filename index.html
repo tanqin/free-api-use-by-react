@@ -306,6 +306,7 @@
                     id='audio-player'
                     autoPlay
                     controls
+                    muted
                     onPlay={() => setPlaying(true)}
                     onPause={() => setPlaying(false)}
                     onEnded={() => setPlaying(false)}
@@ -328,10 +329,12 @@
        */
       const ShortVideo = () => {
         const [timestamp, setTimestamp] = useState(Date.now())
-        // 是否开启静音
+        // 是否静音
         const [muted, setMuted] = useState(true)
         // 是否全屏
         const [isFullScreen, setIsFullScreen] = useState(false)
+        // 是否自动切换
+        const [autoSwitch, setAutoSwitch] = useState(false)
         const videoRef = useRef()
 
         // 全屏
@@ -356,11 +359,18 @@
             <h2 className='title'>短视频</h2>
             <div className='content'>
               <div className='left'>
-                <span style={{ color: muted ? '#aaa' : '#000' }} title='声音控制' onClick={() => setMuted(!muted)}>
+                <span style={{ color: muted ? '#aaa' : '#000' }} title='是否静音' onClick={() => setMuted(!muted)}>
                   ♪
                 </span>
                 <span onClick={() => setTimestamp(Date.now())} title='换一个'>
                   ↻
+                </span>
+                <span
+                  style={{ color: autoSwitch ? '#000' : '#aaa' }}
+                  title='自动切换'
+                  onClick={() => setAutoSwitch(!autoSwitch)}
+                >
+                  ✲
                 </span>
                 <span style={{ color: isFullScreen ? '#000' : '#aaa' }} title='全屏控制' onClick={handleFullScreen}>
                   ❏
@@ -371,10 +381,11 @@
                   className={isFullScreen ? '' : 'video'}
                   ref={videoRef}
                   autoPlay
-                  loop
+                  loop={!autoSwitch}
                   muted={muted}
                   onClick={(e) => (e.target.paused ? e.target.play() : e.target.pause())}
                   onVolumeChange={(e) => setMuted(e.target.muted)}
+                  onEnded={(e) => setTimestamp(Date.now())}
                   onDoubleClick={handleFullScreen}
                   // src='https://www.runoob.com/try/demo_source/mov_bbb.mp4'
                   // src={`https://tucdn.wpon.cn/api-girl/index.php?wpon=302&t=${timestamp}`}
