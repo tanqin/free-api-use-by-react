@@ -90,10 +90,43 @@
 
       audio:focus,
       input,
-      button {
+      button,
+      video,
+      video:focus {
         outline: none;
         border: none;
       }
+
+      .short-video .content {
+        display: flex;
+        height: 80%;
+      }
+      .short-video .content .left {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-left: 10px;
+        font-size: 30px;
+      }
+      .short-video .content .left span {
+        cursor: pointer;
+      }
+
+      .short-video .content .right {
+        flex: 1;
+      }
+
+      .short-video .video {
+        width: 70%;
+        height: 100%;
+        object-fit: fill;
+        border-radius: 1.5%;
+        cursor: pointer;
+      }
+
+      /* video::-webkit-media-controls-mute-button {
+        display: none;
+      } */
     </style>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
@@ -110,6 +143,7 @@
       const ele = React.createElement
       const useState = React.useState
       const useEffect = React.useEffect
+      const useRef = React.useRef
       /**
        * @name 看图猜成语
        * @description 1. 点击图片切换成语; 2. 鼠标移入答案双箭头中间位置显示成语
@@ -287,11 +321,77 @@
         )
       }
 
+      /**
+       * @name 短视频
+       * @description 1. 切换视频
+       * @tip 函数组件 + hooks + jsx + fetch
+       */
+      const ShortVideo = () => {
+        const [timestamp, setTimestamp] = useState(Date.now())
+        // 是否开启静音
+        const [muted, setMuted] = useState(true)
+        // 是否全屏
+        const [isFullScreen, setIsFullScreen] = useState(false)
+        const videoRef = useRef()
+
+        // 全屏
+        const handleFullScreen = () => {
+          const documentEle = document.documentElement
+          if (documentEle.requestFullscreen) {
+            videoRef.current.requestFullscreen()
+          } else if (documentEle.mozRequestFullScreen) {
+            videoRef.current.mozRequestFullScreen()
+          } else if (ele.webkitRequestFullScreen) {
+            videoRef.current.webkitRequestFullScreen()
+          }
+        }
+
+        // 全屏状态改变
+        document.addEventListener('fullscreenchange', (e) => {
+          setIsFullScreen(!isFullScreen)
+        })
+
+        return (
+          <section className='container short-video'>
+            <h2 className='title'>短视频</h2>
+            <div className='content'>
+              <div className='left'>
+                <span style={{ color: muted ? '#aaa' : '#000' }} title='声音控制' onClick={() => setMuted(!muted)}>
+                  ♪
+                </span>
+                <span onClick={() => setTimestamp(Date.now())} title='换一个'>
+                  ↻
+                </span>
+                <span style={{ color: isFullScreen ? '#000' : '#aaa' }} title='全屏控制' onClick={handleFullScreen}>
+                  ❏
+                </span>
+              </div>
+              <div className='right'>
+                <video
+                  className={isFullScreen ? '' : 'video'}
+                  ref={videoRef}
+                  autoPlay
+                  loop
+                  muted={muted}
+                  onClick={(e) => (e.target.paused ? e.target.play() : e.target.pause())}
+                  onVolumeChange={(e) => setMuted(e.target.muted)}
+                  onDoubleClick={handleFullScreen}
+                  // src='https://www.runoob.com/try/demo_source/mov_bbb.mp4'
+                  // src={`https://tucdn.wpon.cn/api-girl/index.php?wpon=302&t=${timestamp}`}
+                  src={`https://v.api.aa1.cn/api/api-dy-girl/index.php?aa1=ajdu987hrjfw&t=${timestamp}`}
+                ></video>
+              </div>
+            </div>
+          </section>
+        )
+      }
+
       const root = ReactDOM.createRoot(document.getElementById('app'))
       root.render([
         ele(GuessIdiom, { key: 'GuessIdiom' }),
         ele(PraySticks, { key: 'PraySticks' }),
         ele(NeteaseMusic, { key: 'NeteaseMusic' }),
+        ele(ShortVideo, { key: 'ShortVideo' }),
       ])
     </script>
   </body>
