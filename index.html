@@ -18,14 +18,17 @@
 
       #app {
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-evenly;
         padding-top: 10px;
+        overflow-y: auto;
         background-image: url('http://api.botwl.cn/api/bing?type=image');
       }
 
       .container {
         width: 300px;
         height: 400px;
+        margin: 10px;
         padding: 10px;
         border-radius: 20px;
         text-align: center;
@@ -97,6 +100,11 @@
         border: none;
       }
 
+      button {
+        height: 28px;
+        cursor: pointer;
+      }
+
       .short-video .content {
         display: flex;
         height: 80%;
@@ -123,10 +131,6 @@
         border-radius: 1.5%;
         cursor: pointer;
       }
-
-      /* video::-webkit-media-controls-mute-button {
-        display: none;
-      } */
     </style>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
@@ -227,7 +231,12 @@
           return (
             <React.Fragment>
               <section className='container pray-sticks'>
-                <h2 className='title' title='双击重抽' onDoubleClick={this.handlePraySticks}>
+                <h2
+                  className='title'
+                  title='双击重抽'
+                  onDoubleClick={this.handlePraySticks}
+                  // onTouchEnd={this.handlePraySticks}
+                >
                   求签
                 </h2>
                 <div className='content'>
@@ -276,6 +285,7 @@
         }
 
         useEffect(() => {
+          document.querySelector('#audio-player').volume = 0.5
           searchSong()
         }, [])
 
@@ -290,7 +300,7 @@
                 onChange={(e) => setSongKeyword(e.target.value)}
                 style={{ width: '70%', height: 26, borderRadius: 4 }}
               />
-              &ensp; <button style={{ height: 28 }}>搜索</button>
+              &ensp; <button>搜索</button>
               <div className='content'>
                 <p>
                   <img
@@ -306,7 +316,6 @@
                     id='audio-player'
                     autoPlay
                     controls
-                    muted
                     onPlay={() => setPlaying(true)}
                     onPause={() => setPlaying(false)}
                     onEnded={() => setPlaying(false)}
@@ -397,12 +406,97 @@
         )
       }
 
+      /**
+       * @name 虎牙主播信息
+       * @description 1. 主播信息搜索
+       * @tip 函数组件 + hooks + jsx + fetch
+       */
+      const HuYa = () => {
+        const [anchorKeyword, setAnchorKeyword] = useState('呆妹儿')
+        const [anchorInfo, setAnchorInfo] = useState({})
+        // 搜索主播信息
+        const searchAnchorInfo = () => {
+          // 空值判断
+          if (!anchorKeyword.trim()) return false
+          fetch(`${proxyInterface}?url=http://api.botwl.cn/api/huya?msg=${anchorKeyword}&n=1`).then(async (res) => {
+            const originData = await res.text()
+            // 切割返回的数据
+            const splitData = originData.split('\n')
+            // 主播信息(临时值)
+            const anchorInfoTemp = {}
+            // 长度为1，表示查不到主播信息
+            if (splitData.length === 1) {
+              const key = splitData[0]
+              const value = ''
+              anchorInfoTemp[key] = value
+            } else {
+              const imgUrl = splitData[0].replace('±img=', '')
+              anchorInfoTemp.imgUrl = imgUrl
+              splitData.splice(1).forEach((item) => {
+                const key = item.split('：')[0] + '：'
+                // unicode 编码转换中文
+                const value = item.split('：')[1] && eval("'" + item.split('：')[1] + "'")
+                anchorInfoTemp[key] = value
+              })
+            }
+            setAnchorInfo({ ...anchorInfoTemp })
+          })
+        }
+
+        useEffect(() => {
+          searchAnchorInfo()
+        }, [])
+
+        return (
+          <section className='container hu-ya'>
+            <h2 className='title'>虎牙主播信息</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                searchAnchorInfo()
+              }}
+            >
+              <input
+                type='text'
+                placeholder='请输入主播信息'
+                value={anchorKeyword}
+                onChange={(e) => setAnchorKeyword(e.target.value)}
+                style={{ width: '70%', height: 26, borderRadius: 4 }}
+              />
+              &ensp; <button>搜索</button>
+            </form>
+            {Object.keys(anchorInfo).map((key) =>
+              key === 'imgUrl' ? (
+                <img
+                  key={key}
+                  src={anchorInfo[key]}
+                  alt='anchor'
+                  style={{ width: 80, height: 80, borderRadius: '5%', objectFit: 'fill' }}
+                />
+              ) : (
+                <div key={key}>
+                  {key}
+                  {anchorInfo[key].includes('http') ? (
+                    <a href={anchorInfo[key]} target='_blank'>
+                      {anchorInfo[key]}
+                    </a>
+                  ) : (
+                    anchorInfo[key]
+                  )}
+                </div>
+              )
+            )}
+          </section>
+        )
+      }
+
       const root = ReactDOM.createRoot(document.getElementById('app'))
       root.render([
         ele(GuessIdiom, { key: 'GuessIdiom' }),
         ele(PraySticks, { key: 'PraySticks' }),
         ele(NeteaseMusic, { key: 'NeteaseMusic' }),
         ele(ShortVideo, { key: 'ShortVideo' }),
+        ele(HuYa, { key: 'HuYa' }),
       ])
     </script>
   </body>
