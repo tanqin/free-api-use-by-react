@@ -231,12 +231,7 @@
           return (
             <React.Fragment>
               <section className='container pray-sticks'>
-                <h2
-                  className='title'
-                  title='双击重抽'
-                  onDoubleClick={this.handlePraySticks}
-                  // onTouchEnd={this.handlePraySticks}
-                >
+                <h2 className='title' title='双击重抽' onDoubleClick={this.handlePraySticks}>
                   求签
                 </h2>
                 <div className='content'>
@@ -429,13 +424,26 @@
               const key = splitData[0]
               const value = ''
               anchorInfoTemp[key] = value
-            } else {
+            }
+            // ※ 由于列表搜索接口经常搜不到，所以先注释 ※
+            // 第一项不包含 '±img='，则搜索结果为主播列表
+            // else if (!splitData[0].includes('±img=')) {
+            //   splitData.forEach((item) => {
+            //     // unicode 编码转换中文
+            //     const chineseItem = eval("'" + item.replace('：', ': ') + "'")
+            //     const value = chineseItem.split(': ')[1] && eval("'" + chineseItem.split(': ')[1] + "'")
+            //     const key = chineseItem.split(': ')[0] + (value ? '：' : '')
+            //     anchorInfoTemp[key] = value
+            //   })
+            // }
+            else {
               const imgUrl = splitData[0].replace('±img=', '')
               anchorInfoTemp.imgUrl = imgUrl
               splitData.splice(1).forEach((item) => {
-                const key = item.split('：')[0] + '：'
+                const chineseItem = item.split('：')
+                const key = chineseItem[0] + '：'
                 // unicode 编码转换中文
-                const value = item.split('：')[1] && eval("'" + item.split('：')[1] + "'")
+                const value = chineseItem[1] && eval("'" + chineseItem[1] + "'")
                 anchorInfoTemp[key] = value
               })
             }
@@ -451,6 +459,7 @@
           <section className='container hu-ya'>
             <h2 className='title'>虎牙主播信息</h2>
             <form
+              style={{ paddingBottom: 20 }}
               onSubmit={(e) => {
                 e.preventDefault()
                 searchAnchorInfo()
@@ -476,7 +485,7 @@
               ) : (
                 <div key={key}>
                   {key}
-                  {anchorInfo[key].includes('http') ? (
+                  {anchorInfo[key] && anchorInfo[key].includes('http') ? (
                     <a href={anchorInfo[key]} target='_blank'>
                       {anchorInfo[key]}
                     </a>
